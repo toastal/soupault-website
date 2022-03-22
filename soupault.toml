@@ -26,7 +26,7 @@
 [custom_options]
   site_url = "https://soupault.app"
 
-  latest_soupault_version = "3.1.0"
+  latest_soupault_version = "4.0.0-beta2"
 
 [index]
   index = true
@@ -47,6 +47,7 @@
 
 [index.fields.title]
   selector = ["h1#post-title", "h1"]
+  required = true
 
 [index.fields.date]
   selector = ["time#post-date", "time"]
@@ -61,13 +62,41 @@
 
 [index.views.blog]
   index_selector = "#blog-index"
-  index_item_template = """
-    <h2><a href="{{url}}">{{title}}</a></h2>
-    <p><strong>Last update:</strong> {{date}}.</p>
-    <p><strong>Reading time:</strong> {{reading_time}}.</p>
-    <p>{{excerpt}}</p>
-    <a href="{{url}}">Read more</a>
+  sort_by = "date"
+  sort_type = "calendar"
+
+  paginate = true
+  items_per_page = 5
+
+  page_navigation_template = """
+  <hr>
+  {% if prev_url %}
+    <a href="{{prev_url}}">← newer</a>
+  {% endif %}
+  {# There may not be next page, if this is the last one #} 
+  {% if next_url %}
+    <a href="{{next_url}}">older →</a>
+  {% endif %}
+  </div>
   """
+  page_navigation_selector = "#page-navigation"
+
+  index_template = """
+  {% for e in entries %}
+    <h2><a href="{{e.url}}">{{e.title}}</a></h2>
+    <p><strong>Last update:</strong> {{e.date}}.</p>
+    <p><strong>Reading time:</strong> {{e.reading_time}}.</p>
+    <p>{{e.excerpt}}</p>
+    <a href="{{e.url}}">Read more</a>
+  {% endfor %}
+  """
+
+[hooks.pre-parse]
+  lua_source = '''
+soupault_release = soupault_config["custom_options"]["latest_soupault_version"]
+Log.debug("running pre-parse hook")
+page_source = Regex.replace_all(page_source, "\\$SOUPAULT_RELEASE\\$", soupault_release)
+'''
 
 [widgets.page-title]
   widget = "title"
@@ -99,7 +128,7 @@
   numbered_list = false
 
   heading_links = true
-  heading_link_text = "🖛 "
+  heading_link_text = "→ "
   heading_link_class = "here"
 
   use_heading_slug = true
@@ -149,7 +178,7 @@
   after = "escape-html-in-pre"
   widget = "preprocess_element"
   selector = '*[class^="language-"]'
-  command = 'highlight -O html -f --syntax=$(echo $ATTR_CLASS | sed -e "s/language-//")'
+  command = 'highlight --force -O html -f --syntax=$(echo $ATTR_CLASS | sed -e "s/language-//")'
 
 [widgets.quick-links]
   widget = "quick-links"
@@ -178,7 +207,7 @@
   numbered_list = false
 
   heading_links = true
-  heading_link_text = "🖛 "
+  heading_link_text = "→ "
   heading_link_class = "here"
 
   use_heading_slug = true

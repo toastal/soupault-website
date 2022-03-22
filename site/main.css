@@ -236,9 +236,6 @@ a.footnote
     margin-right: 0.4rem;
 }
 
-ul { list-style-type: "🖙 "; }
-ul:dir(rtl) { list-style-type: "🖘 "; }
-
 ul.toc { list-style: none; }
 
 h5 { font-size: 1.6rem; }
@@ -252,12 +249,11 @@ code, kbd, samp
 
 /** Typography */
 
-@supports (hyphens: auto) or (-ms-hyphens: auto)
+@supports (hyphens: auto)
 {
     main
     {
         text-align: justify;
-        -ms-hyphens: auto;
         hyphens: auto;
     }
 }
